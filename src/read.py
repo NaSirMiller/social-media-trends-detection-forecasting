@@ -53,7 +53,7 @@ def add_frequency_features(lf: pl.LazyFrame) -> pl.LazyFrame:
 def add_row_id(lf: pl.LazyFrame) -> pl.LazyFrame:
     return lf.with_row_index(name="id", offset=0)
 
-
+@timeit_sync
 def load_sample(
     n: int = 1_000_000,
     seed: int = 42,
