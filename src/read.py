@@ -35,28 +35,6 @@ def get_files(url: str = DATA_URL) -> list[str]:
     print(f"Found and cached {len(files)} files")
     return files
 
-def load_scan(
-    url: str = DATA_URL,
-    columns: Optional[list[str]] = None,
-    language: Optional[str] = None,
-    theme: Optional[str] = None,
-) -> pl.LazyFrame:
-    """
-    Returns a lazy frame with optional column projection and filters.
-    No data is read until .collect() is called.
-    """
-    lf = pl.scan_parquet(get_files(), hive_partitioning=False)
-
-    if columns:
-        lf = lf.select(columns)
-    if language:
-        lf = lf.filter(pl.col("language") == language)
-    if theme:
-        lf = lf.filter(pl.col("primary_theme") == theme)
-
-    return lf
-
-
 def add_frequency_features(lf: pl.LazyFrame) -> pl.LazyFrame:
     """Adds author_post_frequency and content_frequency window columns."""
     return lf.with_columns([
@@ -87,7 +65,10 @@ def load_sample(
     Collects a stratified sample as an eager DataFrame.
     This is the entry point for the sampling pipeline.
     """
-    lf = load_scan(url=url, columns=columns, language=language, theme=theme)
+    lf = pl.scan_parquet(get_files(url), hive_partitioning=False)
+    if columns:
+        lf = lf.select(columns)
+
     if use_head:
         sample = lf.head(n).collect()
     else:
@@ -98,6 +79,10 @@ def load_sample(
         )
 
     sample = sample.filter(pl.col("original_text").is_not_null())
+    if language:
+        sample = sample.filter(pl.col("language") == language)
+    if theme:
+        sample = sample.filter(pl.col("primary_theme") == theme)
     sample = add_frequency_features(sample.lazy()).collect()
     sample = add_row_id(sample.lazy()).collect()
     return sample

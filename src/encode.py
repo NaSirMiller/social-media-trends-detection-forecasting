@@ -34,7 +34,8 @@ _EMBEDDING_MODEL: Optional[SentenceTransformer] = None
 def get_embedding_model() -> SentenceTransformer:
     global _EMBEDDING_MODEL
     if _EMBEDDING_MODEL is None:
-        _EMBEDDING_MODEL = SentenceTransformer("BAAI/bge-m3", device="mps", token=os.getenv("HF_TOKEN"))
+        # _EMBEDDING_MODEL = SentenceTransformer("BAAI/bge-m3", device="mps", token=os.getenv("HF_TOKEN"))
+        _EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2", device="mps", token=os.getenv("HF_TOKEN"))
     return _EMBEDDING_MODEL
 
 def to_embedding(
