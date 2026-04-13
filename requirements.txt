@@ -1,3 +1,40 @@
 polars
 scikit-learn
 sentence_transformers
+matplotlibdef plot_unique_authors(sample: pl.DataFrame, cluster_col: str = "cluster_tfidf"):
+    author_counts = (
+        sample
+        .group_by(cluster_col)
+        .agg(pl.col("author_hash").n_unique().alias("unique_authors"))
+        .sort(cluster_col)
+    )
+
+    clusters = author_counts[cluster_col].to_list()
+    counts   = author_counts["unique_authors"].to_list()
+
+    fig, ax = plt.subplots(figsize=(16, 5))
+
+    bars = ax.bar(
+        range(len(clusters)), counts,
+        color="#5DCAA5", edgecolor="#0F6E56", linewidth=0.5
+    )
+
+    ax.set_xticks(range(len(clusters)))
+    ax.set_xticklabels([f"C{c}" for c in clusters], fontsize=8)
+    ax.set_xlabel("Cluster")
+    ax.set_ylabel("Unique authors")
+    ax.set_title("Unique authors per cluster")
+    ax.grid(axis="y", linewidth=0.4, alpha=0.5)
+
+    # annotate bar tops
+    for bar, v in zip(bars, counts):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 1,
+            str(v), ha="center", va="bottom", fontsize=7
+        )
+
+    plt.tight_layout()
+    plt.savefig("unique_authors.png", dpi=150, bbox_inches="tight")
+    plt.show()
+wordcloud
